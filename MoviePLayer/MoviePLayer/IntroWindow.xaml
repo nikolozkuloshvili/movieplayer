@@ -1,0 +1,23 @@
+﻿<Window x:Class="MoviePlayer.IntroWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Welcome" WindowStyle="None" AllowsTransparency="True" 
+        Background="Black" WindowState="Maximized" Topmost="True"
+        KeyDown="Window_KeyDown">
+    <Grid>
+        <MediaElement x:Name="IntroPlayer" 
+                      LoadedBehavior="Play" 
+                      UnloadedBehavior="Stop" 
+                      Stretch="UniformToFill"
+                      MediaEnded="IntroPlayer_MediaEnded" 
+                      Volume="1.0" />
+
+        <TextBlock Text="Press any key to skip" 
+                   Foreground="Gray" 
+                   FontSize="12" 
+                   HorizontalAlignment="Right" 
+                   VerticalAlignment="Bottom" 
+                   Margin="20" 
+                   Opacity="0.5"/>
+    </Grid>
+</Window>

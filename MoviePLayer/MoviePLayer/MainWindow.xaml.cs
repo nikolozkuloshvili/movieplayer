@@ -18,9 +18,12 @@ namespace MoviePlayer
 
     public partial class MainWindow : Window
     {
+
         private string apiKey = "273e7df007feb07917cb631c4eca5f02";
         private List<MyMovie> allMovies = new List<MyMovie>();
-        private MyMovie currentlySelectedMovie;
+
+        // Use '?' to allow this to be null initially, fixing CS8618
+        private MyMovie? currentlySelectedMovie;
 
         public MainWindow()
         {
@@ -43,7 +46,7 @@ namespace MoviePlayer
                     if (best != null)
                     {
                         var fullDetails = await client.GetMovieAsync(best.Id, MovieMethods.ExternalIds);
-                        movie.Description = fullDetails.Overview ?? "No description available.";
+                        movie.Description = fullDetails!.Overview ?? "No description available.";
                         movie.PosterPath = $"https://image.tmdb.org/t/p/w500{fullDetails.PosterPath}";
                         movie.Runtime = fullDetails.Runtime > 0 ? $"{fullDetails.Runtime} min" : "N/A";
                         movie.ImdbId = fullDetails.ExternalIds?.ImdbId;
@@ -132,7 +135,6 @@ namespace MoviePlayer
             {
                 Process.Start(new ProcessStartInfo { FileName = movie.FilePath, UseShellExecute = true });
 
-                // Track the time played
                 movie.LastPlayed = DateTime.Now;
                 UpdateContinueWatching();
             }
@@ -144,7 +146,6 @@ namespace MoviePlayer
 
         private void UpdateContinueWatching()
         {
-            // Get the 6 most recently played movies
             var recent = allMovies
                 .Where(m => m.LastPlayed != null)
                 .OrderByDescending(m => m.LastPlayed)
@@ -153,17 +154,17 @@ namespace MoviePlayer
 
             if (recent.Any())
             {
-                ContinueWatchingGrid.ItemsSource = null; // Reset to force refresh
+                ContinueWatchingGrid.ItemsSource = null;
                 ContinueWatchingGrid.ItemsSource = recent;
                 ContinueWatchingSection.Visibility = Visibility.Visible;
             }
         }
 
-        private void FilterChanged(object? sender, EventArgs e)
+        private void FilterChanged(object sender, EventArgs e)
         {
             if (allMovies == null) return;
             string searchText = SearchBox.Text.ToLower();
-            string? selectedYear = YearFilter.SelectedItem?.ToString();
+            string selectedYear = YearFilter.SelectedItem?.ToString() ?? "All Years";
 
             var filtered = allMovies.Where(m =>
                 m.Title.ToLower().Contains(searchText) &&
@@ -173,12 +174,12 @@ namespace MoviePlayer
             MovieDisplayGrid.ItemsSource = filtered;
         }
 
-        private void ImdbButton_Click(object? sender, RoutedEventArgs e)
+        private void ImdbButton_Click(object sender, RoutedEventArgs e)
         {
             if (ImdbButton.Tag is string id) Process.Start(new ProcessStartInfo($"https://www.imdb.com/title/{id}") { UseShellExecute = true });
         }
 
-        private void LetterboxdButton_Click(object? sender, RoutedEventArgs e)
+        private void LetterboxdButton_Click(object sender, RoutedEventArgs e)
         {
             if (LetterboxdButton.Tag is string id) Process.Start(new ProcessStartInfo($"https://letterboxd.com/imdb/{id}") { UseShellExecute = true });
         }
