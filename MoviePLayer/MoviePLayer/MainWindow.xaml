@@ -16,8 +16,15 @@
         </Grid.RowDefinitions>
 
         <Border Grid.ColumnSpan="2" Background="#1a1a1a" BorderBrush="#333" BorderThickness="0,0,0,1">
-            <TextBlock Text="MY CINEMA" Foreground="#E50914" FontSize="26" 
-                       FontWeight="Bold" VerticalAlignment="Center" Margin="30,0"/>
+            <DockPanel Margin="30,0">
+                <TextBlock Text="MY CINEMA" Foreground="#E50914" FontSize="26" 
+                           FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <ComboBox x:Name="YearFilter" Width="110" Height="30" Margin="0,0,20,0" SelectionChanged="FilterChanged" />
+                    <TextBox x:Name="SearchBox" Width="200" Height="30" Padding="10,0" VerticalContentAlignment="Center" TextChanged="FilterChanged" />
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto">
@@ -27,18 +34,15 @@
                         <WrapPanel HorizontalAlignment="Center" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Margin="12" Width="160">
-                            <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand"
-                                    MouseLeftButtonUp="MovieCard_Click">
+                            <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand" MouseLeftButtonUp="MovieCard_Click">
                                 <Grid MouseDown="MovieBorder_MouseDown">
                                     <Image Source="{Binding PosterPath}" Height="240" Stretch="UniformToFill" />
                                 </Grid>
                             </Border>
-                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" 
-                                       TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -48,7 +52,7 @@
         <Border Grid.Row="1" Grid.Column="1" Background="#181818" BorderBrush="#333" BorderThickness="1,0,0,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="25">
-                    <TextBlock Text="NOW SELECTED" Foreground="Gray" FontSize="10" FontWeight="Bold" Margin="0,0,0,20"/>
+                    <TextBlock Text="SELECTED MOVIE" Foreground="Gray" FontSize="10" FontWeight="Bold" Margin="0,0,0,20"/>
 
                     <Border CornerRadius="10" ClipToBounds="True" Background="#111" Margin="0,0,0,20">
                         <Image x:Name="SelectedPoster" Height="450" Stretch="UniformToFill" />
@@ -56,7 +60,12 @@
 
                     <TextBlock x:Name="SelectedTitle" Foreground="White" FontSize="26" FontWeight="Bold" TextWrapping="Wrap"/>
 
-                    <Rectangle Height="2" Fill="#E50914" Width="40" HorizontalAlignment="Left" Margin="0,15"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <TextBlock x:Name="SelectedYearLabel" Foreground="#E50914" FontSize="16" Margin="0,0,15,0"/>
+                        <TextBlock x:Name="SelectedRuntimeLabel" Foreground="Gray" FontSize="16"/>
+                    </StackPanel>
+
+                    <Rectangle Height="2" Fill="#333" Margin="0,15"/>
 
                     <TextBlock x:Name="SelectedDescription" Foreground="#AAAAAA" FontSize="15" 
                                TextWrapping="Wrap" LineHeight="22" Margin="0,0,0,20"/>
