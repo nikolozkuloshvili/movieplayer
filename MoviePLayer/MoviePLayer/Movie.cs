@@ -8,4 +8,7 @@ public class Movie
     public string FilePath { get; set; } = "";
     public string Year { get; set; }
     public string Runtime { get; set; }
+    public string ImdbRating { get; set; }
+    public string LetterboxdRating { get; set; }
+    public string ImdbId { get; set; }
 }

@@ -21,8 +21,14 @@
                            FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <ComboBox x:Name="YearFilter" Width="110" Height="30" Margin="0,0,20,0" SelectionChanged="FilterChanged" />
-                    <TextBox x:Name="SearchBox" Width="200" Height="30" Padding="10,0" VerticalContentAlignment="Center" TextChanged="FilterChanged" />
+                    <TextBlock Text="YEAR:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="11"/>
+                    <ComboBox x:Name="YearFilter" Width="110" Height="30" Margin="0,0,20,0" 
+                              VerticalContentAlignment="Center" SelectionChanged="FilterChanged" />
+
+                    <TextBlock Text="SEARCH:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="11"/>
+                    <TextBox x:Name="SearchBox" Width="200" Height="30" Padding="10,0" 
+                              VerticalContentAlignment="Center" Background="#222" Foreground="White" 
+                              BorderBrush="#444" TextChanged="FilterChanged" />
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -37,12 +43,14 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Margin="12" Width="160">
-                            <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand" MouseLeftButtonUp="MovieCard_Click">
+                            <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand" 
+                                    MouseLeftButtonUp="MovieCard_Click">
                                 <Grid MouseDown="MovieBorder_MouseDown">
                                     <Image Source="{Binding PosterPath}" Height="240" Stretch="UniformToFill" />
                                 </Grid>
                             </Border>
-                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" 
+                                       TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -60,15 +68,47 @@
 
                     <TextBlock x:Name="SelectedTitle" Foreground="White" FontSize="26" FontWeight="Bold" TextWrapping="Wrap"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                        <TextBlock x:Name="SelectedYearLabel" Foreground="#E50914" FontSize="16" Margin="0,0,15,0"/>
-                        <TextBlock x:Name="SelectedRuntimeLabel" Foreground="Gray" FontSize="16"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock x:Name="SelectedYearLabel" Foreground="#E50914" FontSize="15" Margin="0,0,12,0"/>
+                        <TextBlock x:Name="SelectedRuntimeLabel" Foreground="Gray" FontSize="15" Margin="0,0,12,0"/>
+
+                        <TextBlock x:Name="SelectedImdbRating" Foreground="#F5C518" FontSize="15" FontWeight="Bold" Margin="0,0,12,0"/>
+
+                        <TextBlock x:Name="SelectedLbRating" Foreground="#00e054" FontSize="15" FontWeight="Bold"/>
                     </StackPanel>
 
-                    <Rectangle Height="2" Fill="#333" Margin="0,15"/>
+                    <UniformGrid Columns="2" Margin="0,20,0,0">
+                        <Button x:Name="ImdbButton" Content="IMDb" 
+                                Margin="0,0,5,0" Height="38"
+                                Background="#222" Foreground="#F5C518" 
+                                BorderBrush="#444" BorderThickness="1" 
+                                FontSize="11" FontWeight="Bold" Cursor="Hand"
+                                Click="ImdbButton_Click">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+
+                        <Button x:Name="LetterboxdButton" Content="LETTERBOXD" 
+                                Margin="5,0,0,0" Height="38"
+                                Background="#222" Foreground="#00e054" 
+                                BorderBrush="#444" BorderThickness="1" 
+                                FontSize="11" FontWeight="Bold" Cursor="Hand"
+                                Click="LetterboxdButton_Click">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </UniformGrid>
+
+                    <Rectangle Height="1" Fill="#333" Margin="0,20"/>
 
                     <TextBlock x:Name="SelectedDescription" Foreground="#AAAAAA" FontSize="15" 
-                               TextWrapping="Wrap" LineHeight="22" Margin="0,0,0,20"/>
+                               TextWrapping="Wrap" LineHeight="22" Margin="0,0,0,30"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
