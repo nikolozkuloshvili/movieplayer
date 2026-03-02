@@ -12,153 +12,158 @@ using System.Windows.Media.Imaging;
 using TMDbLib.Client;
 using TMDbLib.Objects.Movies;
 
-namespace MoviePlayer;
-
-using MyMovie = MoviePLayer.Movie.Movie;
-
-public partial class MainWindow : Window
+namespace MoviePlayer
 {
-    private string apiKey = "273e7df007feb07917cb631c4eca5f02";
-    private List<MyMovie> allMovies = new List<MyMovie>();
+    using MyMovie = MoviePLayer.Movie.Movie;
 
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
-        LoadMovies();
-    }
+        private string apiKey = "273e7df007feb07917cb631c4eca5f02";
+        private List<MyMovie> allMovies = new List<MyMovie>();
+        private MyMovie currentlySelectedMovie;
 
-    public async void LoadMovies()
-    {
-        var localFiles = ScanFolder(@"G:\kino\movies");
-        TMDbClient client = new TMDbClient(apiKey);
+        public MainWindow()
+        {
+            InitializeComponent();
+            LoadMovies();
+        }
 
-        foreach (var movie in localFiles)
+        public async void LoadMovies()
+        {
+            var localFiles = ScanFolder(@"G:\kino\movies");
+            TMDbClient client = new TMDbClient(apiKey);
+
+            foreach (var movie in localFiles)
+            {
+                try
+                {
+                    var results = await client.SearchMovieAsync(movie.Title);
+                    var best = results.Results.FirstOrDefault();
+
+                    if (best != null)
+                    {
+                        var fullDetails = await client.GetMovieAsync(best.Id, MovieMethods.ExternalIds);
+                        movie.Description = fullDetails.Overview ?? "No description available.";
+                        movie.PosterPath = $"https://image.tmdb.org/t/p/w500{fullDetails.PosterPath}";
+                        movie.Runtime = fullDetails.Runtime > 0 ? $"{fullDetails.Runtime} min" : "N/A";
+                        movie.ImdbId = fullDetails.ExternalIds?.ImdbId;
+                        movie.ImdbRating = fullDetails.VoteAverage > 0 ? $"IMDb: {fullDetails.VoteAverage:F1}/10" : "IMDb: —";
+                    }
+                }
+                catch { }
+            }
+
+            allMovies = localFiles;
+            MovieDisplayGrid.ItemsSource = allMovies;
+
+            var years = allMovies.Select(m => m.Year).Where(y => y != "Unknown").Distinct().OrderByDescending(y => y).ToList();
+            years.Insert(0, "All Years");
+            YearFilter.ItemsSource = years;
+            YearFilter.SelectedIndex = 0;
+        }
+
+        public List<MyMovie> ScanFolder(string folderPath)
+        {
+            var found = new List<MyMovie>();
+            if (!Directory.Exists(folderPath)) return found;
+
+            string[] extensions = { ".mp4", ".mkv", ".avi" };
+            var files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories)
+                                 .Where(f => extensions.Contains(Path.GetExtension(f).ToLower()));
+
+            foreach (string file in files)
+            {
+                string raw = Path.GetFileNameWithoutExtension(file);
+                string clean = raw.Replace(".", " ").Replace("_", " ");
+                string movieYear = "Unknown";
+                var matches = Regex.Matches(clean, @"\b(19|20)\d{2}\b");
+
+                if (matches.Count > 0)
+                {
+                    var lastMatch = matches[matches.Count - 1];
+                    movieYear = lastMatch.Value;
+                    clean = clean.Substring(0, lastMatch.Index);
+                }
+
+                found.Add(new MyMovie { Title = clean.Trim(), Year = movieYear, FilePath = file, PosterPath = "https://via.placeholder.com/160x240" });
+            }
+            return found;
+        }
+
+        // Single Click: Selects the movie and shows details
+        private void MovieCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement el && el.DataContext is MyMovie m)
+            {
+                currentlySelectedMovie = m;
+                SelectedTitle.Text = m.Title;
+                SelectedDescription.Text = m.Description;
+                SelectedYearLabel.Text = m.Year;
+                SelectedRuntimeLabel.Text = m.Runtime;
+                SelectedImdbRating.Text = m.ImdbRating;
+                ImdbButton.Tag = m.ImdbId;
+                LetterboxdButton.Tag = m.ImdbId;
+                try { SelectedPoster.Source = new BitmapImage(new Uri(m.PosterPath)); } catch { }
+            }
+        }
+
+        // MouseDown: Detects Double-Click on the grid card
+        private void MovieCard_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2 && sender is FrameworkElement el && el.DataContext is MyMovie movie)
+            {
+                LaunchMovieFile(movie.FilePath);
+            }
+        }
+
+        // Play Button: Launches current selection
+        private void PlayButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentlySelectedMovie != null)
+            {
+                LaunchMovieFile(currentlySelectedMovie.FilePath);
+            }
+            else
+            {
+                MessageBox.Show("Please select a movie first!");
+            }
+        }
+
+        // Shared Launch Logic
+        private void LaunchMovieFile(string path)
         {
             try
             {
-                var results = await client.SearchMovieAsync(movie.Title);
-                var best = results.Results.FirstOrDefault();
-
-                if (best != null)
-                {
-                    var fullDetails = await client.GetMovieAsync(best.Id, MovieMethods.ExternalIds);
-
-                    movie.Description = fullDetails.Overview ?? "No description available.";
-                    movie.PosterPath = $"https://image.tmdb.org/t/p/w500{fullDetails.PosterPath}";
-                    movie.Runtime = fullDetails.Runtime > 0 ? $"{fullDetails.Runtime} min" : "N/A";
-                    movie.ImdbId = fullDetails.ExternalIds?.ImdbId;
-
-                    // --- RATING LOGIC ---
-                    if (fullDetails.VoteAverage > 0)
-                    {
-                        // IMDb: standard 10-point scale
-                        movie.ImdbRating = $"IMDb: {fullDetails.VoteAverage:F1}/10";
-
-                        // Letterboxd: TMDb score divided by 2 to get a 5-star scale
-                        double lbValue = fullDetails.VoteAverage / 2.0;
-                        movie.LetterboxdRating = $"★ {lbValue:F1}";
-                    }
-                    else
-                    {
-                        movie.ImdbRating = "IMDb: —";
-                        movie.LetterboxdRating = "★ —";
-                    }
-                }
+                Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
             }
-            catch { }
-        }
-
-        allMovies = localFiles;
-        MovieDisplayGrid.ItemsSource = allMovies;
-
-        var years = allMovies.Select(m => m.Year).Where(y => y != "Unknown").Distinct().OrderByDescending(y => y).ToList();
-        years.Insert(0, "All Years");
-        if (allMovies.Any(m => m.Year == "Unknown")) years.Add("Unknown");
-        YearFilter.ItemsSource = years;
-        YearFilter.SelectedIndex = 0;
-    }
-
-    public List<MyMovie> ScanFolder(string folderPath)
-    {
-        var found = new List<MyMovie>();
-        if (!Directory.Exists(folderPath)) return found;
-
-        string[] extensions = { ".mp4", ".mkv", ".avi" };
-        var files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories)
-                             .Where(f => extensions.Contains(Path.GetExtension(f).ToLower()));
-
-        foreach (string file in files)
-        {
-            string raw = Path.GetFileNameWithoutExtension(file);
-            string clean = raw.Replace(".", " ").Replace("_", " ");
-            string movieYear = "Unknown";
-            var matches = Regex.Matches(clean, @"\b(19|20)\d{2}\b");
-
-            if (matches.Count > 0)
+            catch (Exception ex)
             {
-                var lastMatch = matches[matches.Count - 1];
-                movieYear = lastMatch.Value;
-                if (matches.Count > 1) clean = clean.Substring(0, matches[1].Index);
-                else if (matches.Count == 1)
-                {
-                    int yearIndex = matches[0].Index;
-                    if (raw.Contains("(" + movieYear + ")") || clean.Length > yearIndex + 6) clean = clean.Substring(0, yearIndex);
-                }
+                MessageBox.Show($"Could not start movie: {ex.Message}");
             }
-
-            found.Add(new MyMovie { Title = clean.Trim(), Year = movieYear, FilePath = file, PosterPath = "https://via.placeholder.com/500x750?text=Loading..." });
         }
-        return found;
-    }
 
-    private void MovieCard_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is Border b && b.DataContext is MyMovie m)
+        private void FilterChanged(object sender, EventArgs e)
         {
-            SelectedTitle.Text = m.Title;
-            SelectedDescription.Text = m.Description;
-            SelectedYearLabel.Text = m.Year;
-            SelectedRuntimeLabel.Text = m.Runtime;
+            if (allMovies == null) return;
+            string searchText = SearchBox.Text.ToLower();
+            string selectedYear = YearFilter.SelectedItem?.ToString();
 
-            // Show both ratings in the sidebar
-            SelectedImdbRating.Text = m.ImdbRating;
-            SelectedLbRating.Text = m.LetterboxdRating;
+            var filtered = allMovies.Where(m =>
+                m.Title.ToLower().Contains(searchText) &&
+                (selectedYear == "All Years" || m.Year == selectedYear)
+            ).ToList();
 
-            LetterboxdButton.Tag = m.ImdbId;
-            try { SelectedPoster.Source = new BitmapImage(new Uri(m.PosterPath)); } catch { }
+            MovieDisplayGrid.ItemsSource = filtered;
         }
-    }
 
-    private void MovieBorder_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        if (e.ClickCount == 2 && sender is FrameworkElement el && el.DataContext is MyMovie movie)
+        private void ImdbButton_Click(object sender, RoutedEventArgs e)
         {
-            try { Process.Start(new ProcessStartInfo { FileName = movie.FilePath, UseShellExecute = true }); } catch { }
+            if (ImdbButton.Tag is string id) Process.Start(new ProcessStartInfo($"https://www.imdb.com/title/{id}") { UseShellExecute = true });
         }
-    }
 
-    private void FilterChanged(object sender, EventArgs e)
-    {
-        if (allMovies == null) return;
-        string searchText = SearchBox.Text.ToLower();
-        string selectedYear = YearFilter.SelectedItem?.ToString();
-        var filtered = allMovies.Where(m => m.Title.ToLower().Contains(searchText) && (selectedYear == "All Years" || m.Year == selectedYear)).ToList();
-        MovieDisplayGrid.ItemsSource = filtered;
-    }
-    private void ImdbButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (ImdbButton.Tag is string imdbId && !string.IsNullOrEmpty(imdbId))
+        private void LetterboxdButton_Click(object sender, RoutedEventArgs e)
         {
-            string url = $"https://www.imdb.com/title/{imdbId}";
-            try { Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true }); } catch { }
-        }
-    }
-    private void LetterboxdButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (LetterboxdButton.Tag is string imdbId && !string.IsNullOrEmpty(imdbId))
-        {
-            string url = $"https://letterboxd.com/imdb/{imdbId}";
-            try { Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true }); } catch { }
+            if (LetterboxdButton.Tag is string id) Process.Start(new ProcessStartInfo($"https://letterboxd.com/imdb/{id}") { UseShellExecute = true });
         }
     }
 }
