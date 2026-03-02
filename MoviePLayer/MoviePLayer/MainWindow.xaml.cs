@@ -38,7 +38,7 @@ namespace MoviePlayer
                 try
                 {
                     var results = await client.SearchMovieAsync(movie.Title);
-                    var best = results.Results.FirstOrDefault();
+                    var best = results?.Results?.FirstOrDefault();
 
                     if (best != null)
                     {
@@ -90,7 +90,6 @@ namespace MoviePlayer
             return found;
         }
 
-        // Single Click: Selects the movie and shows details
         private void MovieCard_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is FrameworkElement el && el.DataContext is MyMovie m)
@@ -107,21 +106,19 @@ namespace MoviePlayer
             }
         }
 
-        // MouseDown: Detects Double-Click on the grid card
         private void MovieCard_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 2 && sender is FrameworkElement el && el.DataContext is MyMovie movie)
             {
-                LaunchMovieFile(movie.FilePath);
+                LaunchMovieFile(movie);
             }
         }
 
-        // Play Button: Launches current selection
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if (currentlySelectedMovie != null)
             {
-                LaunchMovieFile(currentlySelectedMovie.FilePath);
+                LaunchMovieFile(currentlySelectedMovie);
             }
             else
             {
@@ -129,12 +126,15 @@ namespace MoviePlayer
             }
         }
 
-        // Shared Launch Logic
-        private void LaunchMovieFile(string path)
+        private void LaunchMovieFile(MyMovie movie)
         {
             try
             {
-                Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+                Process.Start(new ProcessStartInfo { FileName = movie.FilePath, UseShellExecute = true });
+
+                // Track the time played
+                movie.LastPlayed = DateTime.Now;
+                UpdateContinueWatching();
             }
             catch (Exception ex)
             {
@@ -142,11 +142,28 @@ namespace MoviePlayer
             }
         }
 
-        private void FilterChanged(object sender, EventArgs e)
+        private void UpdateContinueWatching()
+        {
+            // Get the 6 most recently played movies
+            var recent = allMovies
+                .Where(m => m.LastPlayed != null)
+                .OrderByDescending(m => m.LastPlayed)
+                .Take(6)
+                .ToList();
+
+            if (recent.Any())
+            {
+                ContinueWatchingGrid.ItemsSource = null; // Reset to force refresh
+                ContinueWatchingGrid.ItemsSource = recent;
+                ContinueWatchingSection.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void FilterChanged(object? sender, EventArgs e)
         {
             if (allMovies == null) return;
             string searchText = SearchBox.Text.ToLower();
-            string selectedYear = YearFilter.SelectedItem?.ToString();
+            string? selectedYear = YearFilter.SelectedItem?.ToString();
 
             var filtered = allMovies.Where(m =>
                 m.Title.ToLower().Contains(searchText) &&
@@ -156,12 +173,12 @@ namespace MoviePlayer
             MovieDisplayGrid.ItemsSource = filtered;
         }
 
-        private void ImdbButton_Click(object sender, RoutedEventArgs e)
+        private void ImdbButton_Click(object? sender, RoutedEventArgs e)
         {
             if (ImdbButton.Tag is string id) Process.Start(new ProcessStartInfo($"https://www.imdb.com/title/{id}") { UseShellExecute = true });
         }
 
-        private void LetterboxdButton_Click(object sender, RoutedEventArgs e)
+        private void LetterboxdButton_Click(object? sender, RoutedEventArgs e)
         {
             if (LetterboxdButton.Tag is string id) Process.Start(new ProcessStartInfo($"https://letterboxd.com/imdb/{id}") { UseShellExecute = true });
         }

@@ -35,26 +35,60 @@
         </Border>
 
         <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="MovieDisplayGrid" Margin="10">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel HorizontalAlignment="Center" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="12" Width="160">
-                            <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand"
-                                    MouseLeftButtonUp="MovieCard_Click"
-                                    MouseLeftButtonDown="MovieCard_MouseDown">
-                                <Image Source="{Binding PosterPath}" Height="240" Stretch="UniformToFill" />
-                            </Border>
-                            <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" 
-                                       TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <StackPanel Margin="10">
+
+                <StackPanel x:Name="ContinueWatchingSection" Visibility="Collapsed" Margin="10,10,10,20">
+                    <TextBlock Text="CONTINUE WATCHING" Foreground="White" FontSize="18" FontWeight="Bold" Margin="10,0,0,15"/>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="ContinueWatchingGrid">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="10" Width="210">
+                                        <Border CornerRadius="6" ClipToBounds="True" Background="#222" Cursor="Hand" 
+                                                MouseLeftButtonUp="MovieCard_Click" MouseLeftButtonDown="MovieCard_MouseDown">
+                                            <Grid>
+                                                <Image Source="{Binding PosterPath}" Height="120" Stretch="UniformToFill" Opacity="0.6"/>
+                                                <Ellipse Width="40" Height="40" Fill="#E50914" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                <TextBlock Text="▶" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" FontWeight="SemiBold" 
+                                                   Margin="0,8,0,0" TextAlignment="Left" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <Rectangle Height="1" Fill="#333" Margin="10,20,10,10"/>
+                </StackPanel>
+
+                <TextBlock Text="ALL MOVIES" Foreground="Gray" FontSize="14" FontWeight="Bold" Margin="20,0,0,10"/>
+                <ItemsControl x:Name="MovieDisplayGrid">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="12" Width="160">
+                                <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand"
+                                        MouseLeftButtonUp="MovieCard_Click"
+                                        MouseLeftButtonDown="MovieCard_MouseDown">
+                                    <Image Source="{Binding PosterPath}" Height="240" Stretch="UniformToFill" />
+                                </Border>
+                                <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" 
+                                           TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </ScrollViewer>
 
         <Border Grid.Row="1" Grid.Column="1" Background="#181818" BorderBrush="#333" BorderThickness="1,0,0,0">
