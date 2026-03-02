@@ -6,6 +6,37 @@
         Height="750" Width="1250"
         WindowStartupLocation="CenterScreen"
         Icon="Resources/Ico/icon.ico">
+
+    <Window.Resources>
+        <Style x:Key="CategoryButtonStyle" TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Padding" Value="20,5"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Foreground" Value="#E50914"/>
+                    <Setter Property="BorderBrush" Value="#E50914"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid Background="#121212">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -14,6 +45,7 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -23,6 +55,14 @@
                            FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left"/>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnRefresh" Content="↻ REFRESH" Click="BtnRefresh_Click" 
+                            Background="#333" Foreground="White" Width="90" Height="30" 
+                            Margin="0,0,10,0" BorderThickness="0" Cursor="Hand"/>
+
+                    <Button Content="🎲 SURPRISE ME" Click="BtnRandomMovie_Click" 
+                            Background="#333" Foreground="White" Width="120" Height="30" 
+                            Margin="0,0,20,0" BorderThickness="0" Cursor="Hand"/>
+
                     <TextBlock Text="YEAR:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="11"/>
                     <ComboBox x:Name="YearFilter" Width="110" Height="30" Margin="0,0,20,0" 
                               VerticalContentAlignment="Center" SelectionChanged="FilterChanged" />
@@ -35,7 +75,15 @@
             </DockPanel>
         </Border>
 
-        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto">
+        <Border Grid.Row="1" Grid.Column="0" Background="#141414" BorderBrush="#333" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="20,0">
+                <RadioButton x:Name="RadioAll" Content="ALL MOVIES" Style="{StaticResource CategoryButtonStyle}" IsChecked="True" Click="FilterChanged"/>
+                <RadioButton x:Name="RadioUnwatched" Content="UNWATCHED" Style="{StaticResource CategoryButtonStyle}" Click="FilterChanged" Margin="10,0"/>
+                <RadioButton x:Name="RadioWatched" Content="WATCHED" Style="{StaticResource CategoryButtonStyle}" Click="FilterChanged"/>
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="2" Grid.Column="0" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="10">
 
                 <StackPanel x:Name="ContinueWatchingSection" Visibility="Collapsed" Margin="10,10,10,20">
@@ -59,16 +107,14 @@
                                             </Grid>
                                         </Border>
                                         <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" FontWeight="SemiBold" 
-                                                   Margin="0,8,0,0" TextAlignment="Left" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                                                   Margin="0,8,0,0" TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-                    <Rectangle Height="1" Fill="#333" Margin="10,20,10,10"/>
                 </StackPanel>
 
-                <TextBlock Text="ALL MOVIES" Foreground="Gray" FontSize="14" FontWeight="Bold" Margin="20,0,0,10"/>
                 <ItemsControl x:Name="MovieDisplayGrid">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -79,9 +125,18 @@
                         <DataTemplate>
                             <StackPanel Margin="12" Width="160">
                                 <Border CornerRadius="8" ClipToBounds="True" Background="#222" Cursor="Hand"
-                                        MouseLeftButtonUp="MovieCard_Click"
-                                        MouseLeftButtonDown="MovieCard_MouseDown">
-                                    <Image Source="{Binding PosterPath}" Height="240" Stretch="UniformToFill" />
+                                        MouseLeftButtonUp="MovieCard_Click" MouseLeftButtonDown="MovieCard_MouseDown">
+                                    <Grid>
+                                        <Image Source="{Binding PosterPath}" Height="240" Stretch="UniformToFill" />
+
+                                        <CheckBox IsChecked="{Binding IsWatched}" Click="WatchCheckBox_Click"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8"
+                                                  ToolTip="Mark as Watched">
+                                            <CheckBox.LayoutTransform>
+                                                <ScaleTransform ScaleX="1.6" ScaleY="1.6"/>
+                                            </CheckBox.LayoutTransform>
+                                        </CheckBox>
+                                    </Grid>
                                 </Border>
                                 <TextBlock Text="{Binding Title}" Foreground="White" FontSize="12" 
                                            TextAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
@@ -92,7 +147,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Border Grid.Row="1" Grid.Column="1" Background="#181818" BorderBrush="#333" BorderThickness="1,0,0,0">
+        <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Background="#181818" BorderBrush="#333" BorderThickness="1,0,0,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="25">
                     <Border CornerRadius="10" ClipToBounds="True" Background="#111" Margin="0,0,0,20">
@@ -101,20 +156,25 @@
 
                     <Button x:Name="PlayButton" Content="▶  PLAY MOVIE" Height="50" Margin="0,0,0,20"
                             Background="#E50914" Foreground="White" FontSize="18" FontWeight="Bold"
-                            BorderThickness="0" Cursor="Hand" Click="PlayButton_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="5"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
+                            BorderThickness="0" Cursor="Hand" Click="PlayButton_Click"/>
+
+                    <Button x:Name="BtnChangeFolder" Content="📁 Select Movie Folder" Click="BtnChangeFolder_Click" 
+                            Width="180" Height="40" HorizontalAlignment="Center" Margin="10"
+                            Background="#333333" Foreground="White" BorderThickness="0" Cursor="Hand"/>
 
                     <TextBlock x:Name="SelectedTitle" Foreground="White" FontSize="26" FontWeight="Bold" TextWrapping="Wrap"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <TextBlock x:Name="SelectedYearLabel" Foreground="#E50914" FontSize="15" Margin="0,0,12,0"/>
+                    <Button x:Name="BtnDirectorLink" Click="DirectorLink_Click" Background="Transparent" 
+                            BorderThickness="0" HorizontalAlignment="Left" Padding="0" Cursor="Hand" Margin="0,5,0,0">
+                        <TextBlock x:Name="SelectedDirectorLabel" Foreground="#E50914" FontSize="14" 
+                                   FontWeight="SemiBold" TextDecorations="Underline"/>
+                    </Button>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <TextBlock x:Name="SelectedYearLabel" Foreground="White" FontSize="15" Margin="0,0,12,0"/>
                         <TextBlock x:Name="SelectedRuntimeLabel" Foreground="Gray" FontSize="15" Margin="0,0,12,0"/>
-                        <TextBlock x:Name="SelectedImdbRating" Foreground="#F5C518" FontSize="15" FontWeight="Bold"/>
+                        <TextBlock x:Name="SelectedImdbRating" Foreground="#F5C518" FontSize="15" FontWeight="Bold" Margin="0,0,12,0"/>
+                        <TextBlock x:Name="SelectedLetterboxdRating" Foreground="#00e054" FontSize="15" FontWeight="Bold"/>
                     </StackPanel>
 
                     <UniformGrid Columns="2" Margin="0,20,0,0">

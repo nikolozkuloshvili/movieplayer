@@ -12,4 +12,6 @@ public class Movie
     public string? LetterboxdRating { get; set; }
     public string? ImdbId { get; set; }
     public DateTime? LastPlayed { get; set; }
+    public bool IsWatched { get; set; }
+    public string? Director { get; set; }
 }
